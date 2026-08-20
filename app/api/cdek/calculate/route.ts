@@ -4,7 +4,7 @@ import { cdekFetch, etaFromTariff, pickCdekTariff, type CdekTariff } from "@/lib
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     fromCity?: string;
-    toCity?: string;
+    toCity?: string ;
     weightKg?: number;
   };
   const fromCity = (body.fromCity || "").trim();
