@@ -43,7 +43,7 @@ function HomeFeedInner() {
         <p className="mb-4 text-sm text-muted">Новое от магазинов и б/у от частных продавцов — в одной зоне</p>
         <FiltersBar />
         {!ready ? (
-          <p className="py-10 text-center text-muted">Загружаем каталог с localhost:8080…</p>
+          <p className="py-10 text-center text-muted">Загружаем каталог…</p>
         ) : (
           <ProductGrid items={filtered} />
         )}
