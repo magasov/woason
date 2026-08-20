@@ -1,6 +1,9 @@
 # WOAson
 
 Маркетплейс **«всё в одной зоне»**: новые товары магазинов и б/у объявления частных продавцов, чат с продавцом, отзывы после доставки, шортс, сторис, СДЭК / Почта России / самовывоз.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/magasov/woason/refs/heads/master/woason-banner%402x.png" alt="WOAson — маркетплейс всё в одной зоне" width="100%" />
+</p>
 
 | | |
 | --- | --- |
