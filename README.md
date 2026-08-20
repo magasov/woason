@@ -1,36 +1,260 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WOAson
 
-## Getting Started
+Маркетплейс **«всё в одной зоне»**: новые товары магазинов и б/у объявления частных продавцов, чат с продавцом, отзывы после доставки, шортс, сторис, СДЭК / Почта России / самовывоз.
 
-First, run the development server:
+| | |
+| --- | --- |
+| Сайт | [https://woason.ru](https://woason.ru/) |
+| API | [https://api.woason.ru](https://api.woason.ru) |
+| Документация API (Swagger) | [https://api.woason.ru/docs](https://api.woason.ru/docs) |
+| Backend | [github.com/magasov/woason-api](https://github.com/magasov/woason-api) |
+| Frontend | этот репозиторий |
+
+WebSocket чата: `wss://api.woason.ru/ws?token=ACCESS_JWT`
+
+---
+
+## Что умеет продукт
+
+### Покупатель
+
+- **Каталог и лента** — главная с баннерами, рядом шортс, блоком «Хорошая цена» (скидка ≥ 30%) и общей лентой. Фильтры: все / только новые / только б/у.
+- **Категории** — боковой каталог по группам: Мода, Техника, Дом, Красота, Дети и животные, Спорт и хобби, Продукты. Страница категории `/category/[slug]`.
+- **Поиск** — строка в шапке → `/search?q=…` по названию, описанию и тегам.
+- **Карточка товара** — галерея фото, цена и старая цена, скидка, рейтинг, состояние (новое / б/у), тип торговли (розница / опт; дропшиппинг для покупателя показывается как розница), продавец, город, наличие, способы доставки с расчётом СДЭК.
+- **Корзина и избранное** — количество, сумма, переход к оформлению. Избранное с сердечка на карточке или со страницы товара.
+- **Оформление заказа** — адрес через Дадату, город по IP, пункты СДЭК, Почта России, самовывоз. Оплата через ЮKassa (`confirmationUrl` с `/api/v1/checkout`).
+- **Заказы** — трек, статус, состав. После статуса «Доставлен» можно оставить отзыв.
+- **Чат с продавцом** — диалог с витрины или карточки товара. Список переписок, непрочитанные, звук и браузерные уведомления в реальном времени.
+- **Отзывы** — читать может любой. Написать — только получивший заказ. Звёзды, текст, фото, сортировка и фильтр по оценке. Ответ продавца виден на карточке.
+- **Шортс** — вертикальная лента: лайк, комментарии, шаринг, переход к товару и в корзину.
+- **Витрина магазина** — баннер, лого, сторис, товары по категориям магазина, шортс, кнопка «написать».
+- **Кабинет** — заказы, покупки, избранное, отзывы (ожидают оценки / уже оставленные), профиль, адрес, аватар.
+
+### Продавец
+
+- **Регистрация магазина** — три шага: контакты → название и описание → способы доставки. Комиссия на старте 0%.
+- **Дашборд** `/seller` — оборот, новые / в пути / доставленные заказы, товары по категориям, воронка, быстрый переход к витрине.
+- **Добавление товара** `/seller/new` — категория, название, описание, цена / старая цена, новое или б/у, розница / опт / дропшиппинг, до 12 фото (JPG, PNG, WebP, GIF, до 10 МБ).
+- **Заказы** `/seller/orders` — этикетка СДЭК или Почты, печать, смена статуса (ожидает отправки → в пути → доставлен), трек-номер.
+- **Отзывы** `/seller/reviews` — все оценки на товары, фильтр «без ответа / с ответом», звёзды, ответ покупателю.
+- **Сторис** `/seller/stories` — фото и подпись, кружок на витрине магазина.
+- **Шортс** `/seller/shorts` — ролик к своему товару, попадает в общую ленту `/reels`.
+- **Чат** `/messages` — те же диалоги, что у покупателя: продавец отвечает покупателям.
+- **Настройки витрины** `/seller/settings` — название, описание, город, телефон, лого, баннер, СДЭК / Почта / самовывоз.
+
+---
+
+## Карта сайта
+
+| Путь | Кто | Что происходит |
+| --- | --- | --- |
+| `/` | все | Лента, баннеры, шортс, хорошая цена |
+| `/category/[slug]` | все | Товары раздела |
+| `/search` | все | Поиск |
+| `/product/[id]` | все | Карточка, доставка, отзывы, в корзину / избранное, чат с продавцом |
+| `/shop/[id]` | все | Витрина: сторис, товары, шортс, написать продавцу |
+| `/reels` | все | Вертикальные шортс |
+| `/cart` | все | Корзина |
+| `/checkout` | покупатель | Адрес, СДЭК / почта / самовывоз, оплата |
+| `/favorites` | покупатель | Избранное |
+| `/orders/[id]` | свой заказ | Статусы, трек, CTA на отзыв |
+| `/login` | гость | Вход (JWT) |
+| `/register` | гость | Покупатель или продавец |
+| `/cabinet` | покупатель | Заказы, отзывы, профиль, избранное |
+| `/messages` | любой залогиненный | Список чатов |
+| `/chat/[id]` | любой залогиненный | Переписка с человеком / магазином |
+| `/seller` | продавец | Дашборд |
+| `/seller/new` | продавец | Новый товар |
+| `/seller/orders` | продавец | Отправки и этикетки |
+| `/seller/reviews` | продавец | Ответы на отзывы |
+| `/seller/stories` | продавец | Сторис |
+| `/seller/shorts` | продавец | Шортс |
+| `/seller/settings` | продавец | Витрина |
+
+Категории: `odezhda`, `obuv`, `aksessuary`, `ukrasheniya`, `elektronika`, `bytovaya`, `kompjutery`, `igry`, `dom`, `mebel`, `kuhnya`, `sad`, `remont`, `krasota`, `zdorovie`, `detiam`, `zootovary`, `sport`, `hobbi`, `knigi`, `kantselyariya`, `produkty`.
+
+---
+
+## Чат
+
+Чат общий для покупателя и продавца — один inbox, роли отличаются только тем, кто пишет первым.
+
+1. С карточки товара или витрины покупатель открывает `/chat/{sellerId}` (без логина — редирект на `/login?next=…`).
+2. Слева список диалогов (`GET /api/v1/chats`), справа история (`GET /api/v1/chats/{peerId}/messages`).
+3. Отправка: `POST /api/v1/chats/{peerId}/messages`. Нельзя писать самому себе.
+4. Прочитано: `POST /api/v1/chats/{peerId}/read` при открытии треда.
+5. Живые сообщения — WebSocket `wss://api.woason.ru/ws?token=…`, событие `chat.message`.
+6. Если вкладка не на этом чате: звук `/sounds/message.mp3`, тост снизу справа, badge непрочитанных в шапке, браузерный Notification (после разрешения).
+
+---
+
+## Отзывы
+
+Правило: **смотреть может любой, писать — только после доставки своего заказа**. Продавец свой товар не оценивает.
+
+| Состояние | Что видит пользователь |
+| --- | --- |
+| гость | только список отзывов |
+| нет покупки | «купить, чтобы оценить» |
+| заказ в пути | «можно будет после доставки» |
+| статус «Доставлен», отзыва нет | форма: 1–5 звёзд, текст, фото |
+| уже оставлял | свой отзыв, форма скрыта |
+| продавец этого товара | ответы покупателям, не оценка |
+
+- Карточка: `GET /api/v1/products/{id}/reviews?sort=new|high|low`
+- Написать: `POST /api/v1/products/{id}/reviews` + загрузка фото `POST /api/v1/uploads` (`kind=review`)
+- Кабинет покупателя: свои отзывы и список «ждут оценки»
+- Кабинет продавца: `GET /api/v1/seller/reviews`, ответ `POST /api/v1/seller/reviews/{id}/reply`
+
+---
+
+## Товары и витрина
+
+Продавец публикует карточку:
+
+- категория, название, описание;
+- цена и опционально старая цена (скидка считается автоматически);
+- новое или б/у (б/у помечается как частник);
+- тип торговли: розница, опт, дропшиппинг;
+- фото (минимум одно, максимум 12);
+- город, вес, остаток и способы доставки берутся из настроек магазина.
+
+Фото грузятся в `POST /api/v1/uploads` (`kind=product`), товар создаётся `POST /api/v1/seller/products`. После публикации открывается `/product/{id}`.
+
+Настройки магазина (`PATCH /api/v1/seller/shop`): название, описание, город, телефон, лого (`kind=avatar`), баннер (`kind=banner`), СДЭК / Почта / самовывоз. Публичная витрина — `/shop/{id}`.
+
+Сторис: одно фото + подпись → кружок на витрине. Шортс привязан к товару и попадает в `/reels` (лайк, комментарии, «в корзину»).
+
+---
+
+## Заказы и доставка
+
+Статусы: оформлен → ждёт оплату → оплачен → ожидает отправки → этикетка напечатана → в пути → доставлен (плюс отмена / возврат).
+
+**Покупатель** на `/checkout` выбирает способ, доступный у товаров в корзине:
+
+- **СДЭК** — расчёт тарифа и список ПВЗ (прокси фронта `/api/cdek/*`);
+- **Почта России** — адрес через Дадату;
+- **Самовывоз** — бесплатно, встреча с продавцом.
+
+После `POST /api/v1/checkout` браузер уходит на оплату ЮKassa, если API вернул `confirmationUrl`, иначе сразу на `/orders/{id}`.
+
+**Продавец** печатает этикетку СДЭК или Почты (`POST /api/v1/seller/orders/{id}/label`) и двигает статус (`POST /api/v1/seller/orders/{id}/status`). Трек появляется на странице заказа.
+
+Город в шапке определяется по IP (`/api/dadata/iplocate`) и сохраняется локально. Подсказки адресов — Дадата.
+
+---
+
+## Авторизация
+
+Роли: `buyer`, `seller`, `admin`.
+
+- Регистрация `POST /api/v1/auth/register`, вход `POST /api/v1/auth/login`.
+- Access + refresh JWT в `localStorage` (`woason-auth-v1`).
+- Клиент `lib/api.ts` сам обновляет токен через `POST /api/v1/auth/refresh` при 401.
+- Выход `POST /api/v1/auth/logout`.
+- Профиль `GET/PATCH /api/v1/me` (имя, телефон, аватар).
+
+---
+
+## Стек
+
+- **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tailwind CSS 4**
+- Клиентский стор `lib/store.tsx` — каталог, корзина, чат, заказы, отзывы, WebSocket
+- Картинки: `next/image` (Ozon CDN, Яндекс, `api.woason.ru/uploads`)
+- Сборка: `output: "standalone"`, Docker, деплой на VPS за Caddy
+
+Фронт **не** отдаётся как static export: нужны route handlers `/api/cdek` и `/api/dadata`.
+
+---
+
+## Локальный запуск
+
+Нужен Node 22+ и запущенный backend (по умолчанию `http://localhost:8080`, см. [woason-api](https://github.com/magasov/woason-api)).
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Локальные ключи — в `.env.local` (файл в git не попадает):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+DADATA_API_KEY=
+DADATA_SECRET_KEY=
+CDEK_API_URL=https://api.edu.cdek.ru
+CDEK_ACCOUNT=
+CDEK_SECURE=
+```
 
-## Learn More
+`NEXT_PUBLIC_*` вшивается **на сборке**, не в runtime. Для продакшена в Docker передаётся build-arg `NEXT_PUBLIC_API_URL=https://api.woason.ru`.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm start
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Если API недоступен, стор подхватывает демо-каталог из `lib/data.ts`, чтобы UI не падал.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Как фронт ходит в API
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+База: `NEXT_PUBLIC_API_URL` → `lib/api.ts`. Полная схема и примеры — [api.woason.ru/docs](https://api.woason.ru/docs).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Область | Методы |
+| --- | --- |
+| Auth | `POST /api/v1/auth/register` `login` `refresh` `logout` |
+| Профиль | `GET/PATCH /api/v1/me` |
+| Каталог | `GET /api/v1/products` `GET /api/v1/products/{id}` |
+| Магазин | `GET /api/v1/shops/{id}` `…/products` `…/reels` `…/stories` |
+| Корзина | `GET/POST /api/v1/cart` `POST /api/v1/cart/{productId}` |
+| Избранное | `GET/POST /api/v1/favorites` `DELETE /api/v1/favorites/{id}` |
+| Чекаут | `POST /api/v1/checkout` `GET /api/v1/orders/{id}` `GET /api/v1/cabinet/orders` |
+| Отзывы | `GET/POST /api/v1/products/{id}/reviews` `GET /api/v1/cabinet/reviews` `…/pending` |
+| Чат | `GET /api/v1/chats` `GET/POST …/{peerId}/messages` `POST …/{peerId}/read` + WS |
+| Загрузки | `POST /api/v1/uploads` (`product` `avatar` `banner` `story` `review`) |
+| Продавец | `POST /api/v1/seller/products` `PATCH /api/v1/seller/shop` |
+| | `GET /api/v1/seller/orders` `POST …/{id}/label` `POST …/{id}/status` |
+| | `GET /api/v1/seller/reviews` `POST …/{id}/reply` |
+| | `POST /api/v1/seller/stories` `POST /api/v1/seller/reels` |
+| Шортс | `GET /api/v1/reels` `POST /api/v1/reels/{id}/like` `POST …/comments` |
+
+Прокси на самом Next.js (ключи не светятся в браузере):
+
+- `/api/cdek/calculate` `cities` `offices` `suggest`
+- `/api/dadata/suggest` `iplocate`
+
+---
+
+## Структура
+
+```
+app/(shop)/          страницы витрины, кабинетов, чата, чекаута
+app/api/cdek|dadata  серверные прокси СДЭК и Дадаты
+components/          шапка, карточки, чат, отзывы, галерея, шортс
+lib/api.ts           HTTP-клиент, JWT, refresh
+lib/store.tsx        состояние приложения и вызовы API
+lib/types.ts         модели: товар, заказ, чат, отзыв, магазин
+Dockerfile           standalone-сборка
+docker-compose.yml   сервис web в сети api_internal
+```
+
+---
+
+## Продакшен
+
+Сайт: [https://woason.ru](https://woason.ru/). Контейнер `web` в Docker-сети `api_internal`, Caddy проксирует домен на `:3000`.
+
+```bash
+docker compose up -d --build
+```
+
+CI (`.github/workflows/ci.yml`): push в `master` / `main` → `npm run build` → SSH на VPS → `git reset --hard` → `docker compose up -d --build`. `.env` на сервере не затирается.
+
+Не коммить `.env`, ключи Дадаты / СДЭК, пароли.
