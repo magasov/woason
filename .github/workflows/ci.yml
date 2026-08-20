@@ -43,9 +43,9 @@ jobs:
             fi
             cd /opt/woason/web
             git fetch origin
-            git clean -fd -e .env
-            git checkout -B "$BRANCH" "origin/$BRANCH"
             git reset --hard "origin/$BRANCH"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            git clean -fd -e .env -e .env.local
             test -f .env || { echo "missing /opt/woason/web/.env"; exit 1; }
             chmod 600 .env
             docker compose up -d --build
